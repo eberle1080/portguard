@@ -19,9 +19,9 @@ def run_iptables(params):
     out, err = proc.communicate()
 
     now = datetime.datetime.now()
-    fh = open('/tmp/portguard.txt', 'a+')
-    fh.write(str(now) + ': ' + ' '.join(cmd) + ' [' + str(proc.returncode) + ']\n')
-    fh.close()
+    # fh = open('/tmp/portguard.txt', 'a+')
+    # fh.write(str(now) + ': ' + ' '.join(cmd) + ' [' + str(proc.returncode) + ']\n')
+    # fh.close()
 
     return (proc.returncode, out, err)
 
@@ -69,9 +69,9 @@ class PortGuard(object):
 
         future = datetime.datetime.now() + datetime.timedelta(0, timeout)
 
-        fh = open('/tmp/portguard.txt', 'a+')
-        fh.write('Host %s (%s) wants to open port %d for %d seconds\n' % (host, user, port, timeout))
-        fh.close()
+        # fh = open('/tmp/portguard.txt', 'a+')
+        # fh.write('Host %s (%s) wants to open port %d for %d seconds\n' % (host, user, port, timeout))
+        # fh.close()
 
         if open_port(host, port) != True:
             return -1
@@ -96,9 +96,9 @@ class PortGuard(object):
 
         future = datetime.datetime.now() + datetime.timedelta(0, timeout)
 
-        fh = open('/tmp/portguard.txt', 'a+')
-        fh.write('Host %s (%s) wants to forward port %d to %s:%d for %d seconds\n' % (host, user, port, dstHost, dstPort, timeout))
-        fh.close()
+        # fh = open('/tmp/portguard.txt', 'a+')
+        # fh.write('Host %s (%s) wants to forward port %d to %s:%d for %d seconds\n' % (host, user, port, dstHost, dstPort, timeout))
+        # fh.close()
 
         if forward_port(host, port, dstHost, dstPort) != True:
             return -1
