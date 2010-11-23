@@ -1,0 +1,15 @@
+This little project is intended to be a client-server system. The server is written in python
+and runs on a router (specifically a NAT router). It accepts connections from the client. It
+opens ports for a set amount of time (specified in seconds), and then closes the hole. It is
+designed so that you can open a port for yourself wherever you are. It uses XMLRPC for
+communication. The client is written in PHP. Technically, no authentication is necessary,
+but I figured it would be a good idea to force people to log in. Once logged in, users can
+open ports for themselves using the web interface.
+
+The usage scenario for this is simple. I'm at home, I want to access a service at work (which
+sadly lives behind a NAT). I log in to the website with my LDAP credentials, open a few
+ports for myself, and now I'm cooking with fire (or whatever the kids are cooking with these
+days).
+
+As with all things I create, you run the risk of destroying the economy, your soul, and all baby
+kittens everywhere if you run this software. You've been warned.
