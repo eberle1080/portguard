@@ -9,14 +9,32 @@ from daemon import Daemon
 from threading import Thread
 from scheduler import Scheduler
 
+def test(name):
+    print "My name is " + str(name)
+
 class PortGuard(object):
     def __init__(self, sched):
         self.sched = sched
 
     def open(self, user, host, port, timeout):
+        if not user or len(user) == 0:
+            return -1
+        if not host or len(host) == 0:
+            return -1
+        if not port or port <= 0 or port >= 65535:
+            return -1
+        if not timeout or timeout <= 0:
+            return -1
+
+        future = datetime.datetime.now() + datetime.timedelta(0, timeout)
+
         fh = open('/tmp/portguard.txt', 'w')
         fh.write('Host %s (%s) wants to open port %d for %d seconds\n' % (host, user, port, timeout))
         fh.close()
+
+        self.sched.add_job(future, test, [user])
+
+        return 0
 
     def forward(self, user, host, port, dstHost, dstPort, timeout):
         fh = open('/tmp/portguard.txt', 'w')
@@ -26,23 +44,12 @@ class PortGuard(object):
 class RequestHandler(SimpleXMLRPCRequestHandler):
     rpc_paths = ('/pg',)
 
-def test(str, sched):
-    if str == 'test 1':
-        a = datetime.datetime.now() + datetime.timedelta(0, 3)
-        sched.add_job(a, test, ['test 3', sched])
-    print str
-
 class PortGuardDaemon(Daemon):
     def run(self):
         sched = Scheduler()
         self.server = SimpleXMLRPCServer(("localhost", 8000),
             requestHandler=RequestHandler)
         self.server.register_instance(PortGuard(sched))
-
-        a = datetime.datetime.now() + datetime.timedelta(0, 10)
-        b = datetime.datetime.now() + datetime.timedelta(0, 20)
-        sched.add_job(a, test, ['test 1', sched])
-        sched.add_job(b, test, ['test 2', sched])
 
         sched.start()
         try:
