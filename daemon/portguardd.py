@@ -19,7 +19,7 @@ def run_iptables(params):
     out, err = proc.communicate()
 
     now = datetime.datetime.now()
-    fh = open('/tmp/portguard.txt', 'w')
+    fh = open('/tmp/portguard.txt', 'a+')
     fh.write(str(now) + ': ' + ' '.join(cmd) + ' [' + str(proc.returncode) + ']\n')
     fh.close()
 
@@ -41,7 +41,7 @@ class PortGuard(object):
 
         future = datetime.datetime.now() + datetime.timedelta(0, timeout)
 
-        fh = open('/tmp/portguard.txt', 'w')
+        fh = open('/tmp/portguard.txt', 'a+')
         fh.write('Host %s (%s) wants to open port %d for %d seconds\n' % (host, user, port, timeout))
         fh.close()
 
@@ -56,7 +56,7 @@ class PortGuard(object):
         return 0
 
     def forward(self, user, host, port, dstHost, dstPort, timeout):
-        fh = open('/tmp/portguard.txt', 'w')
+        fh = open('/tmp/portguard.txt', 'a+')
         fh.write('Host %s (%s) wants to forward port %d to %s:%d for %d seconds\n' % (host, user, port, dstHost, dstPort, timeout))
         fh.close()
 
@@ -66,7 +66,7 @@ class RequestHandler(SimpleXMLRPCRequestHandler):
 class PortGuardDaemon(Daemon):
     def run(self):
         self.sched = Scheduler()
-        self.server = SimpleXMLRPCServer(("localhost", 8000),
+        self.server = SimpleXMLRPCServer(("0.0.0.0", 8000),
             requestHandler=RequestHandler)
         self.server.register_instance(PortGuard(self.sched))
 
