@@ -39,6 +39,20 @@ def close_port(src_host, dst_port):
         return False
     return True
 
+def forward_port(src_host, my_port, dst_host, dst_port):
+    args = ['-s', str(src_host), '-p', 'tcp', '--dport', str(my_port), '-j', 'DNAT', '--to', str(dst_host) + ':' + str(dst_port)]
+    r,o,e = run_iptables(['-t', 'nat', '-I', 'portguard'] + args)
+    if r != 0:
+        return False
+    return True
+
+def close_forward(src_host, my_port, dst_host, dst_port):
+    args = ['-s', str(src_host), '-p', 'tcp', '--dport', str(my_port), '-j', 'DNAT', '--to', str(dst_host) + ':' + str(dst_port)]
+    r,o,e = run_iptables(['-t', 'nat', '-D', 'portguard'] + args)
+    if r != 0:
+        return False
+    return True
+
 class PortGuard(object):
     def __init__(self, sched):
         self.sched = sched
@@ -67,9 +81,31 @@ class PortGuard(object):
         return 0
 
     def forward(self, user, host, port, dstHost, dstPort, timeout):
+        if not user or len(user) == 0:
+            return -1
+        if not host or len(host) == 0:
+            return -1
+        if not port or port <= 0 or port >= 65535:
+            return -1
+        if not dstHost or len(dstHost) == 0:
+            return -1
+        if not dstPort or dstPort <= 0 or dstPort >= 65535:
+            return -1
+        if not timeout or timeout <= 0:
+            return -1
+
+        future = datetime.datetime.now() + datetime.timedelta(0, timeout)
+
         fh = open('/tmp/portguard.txt', 'a+')
         fh.write('Host %s (%s) wants to forward port %d to %s:%d for %d seconds\n' % (host, user, port, dstHost, dstPort, timeout))
         fh.close()
+
+        if forward_port(host, port, dstHost, dstPort) != True:
+            return -1
+
+        self.sched.add_job(future, close_forward, [host, port, dstHost, dstPort])
+
+        return 0
 
 class RequestHandler(SimpleXMLRPCRequestHandler):
     rpc_paths = ('/pg',)
