@@ -1,0 +1,25 @@
+# Run by sysadmin
+iptables -N portguard
+iptables -t nat -N portguard
+iptables -A portguard -j RETURN
+iptables -I INPUT -j portguard
+iptables -t nat -A portguard -j RETURN
+iptables -t nat -I PREROUTING -j portguard
+
+# Run by program on startup
+iptables -F portguard (1 on error)
+iptables -A portguard -j RETURN (1 on error)
+iptables -t nat -F portguard (1 on error)
+iptables -t nat -A portguard -j RETURN (1 on error)
+
+# Open port
+iptables -I portguard 1 -s <ip> -p tcp --dport <port> -j ACCEPT (1 on error)
+
+# Close port
+iptables -D portguard -s <ip> -p tcp --dport <port> -j ACCEPT (1 on error)
+
+# Forward port
+iptables -t nat -I portguard 1 -s <ip> -p tcp --dport <port> -j DNAT --to <dip>:<dport> (1 on error)
+
+# Close forward
+iptables -t nat -D portguard -s <ip> -p tcp --dport <port> -j DNAT --to <dip>:<dport> (1 on error)
