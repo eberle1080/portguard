@@ -9,9 +9,6 @@ from daemon import Daemon
 from threading import Thread
 from scheduler import Scheduler
 
-def test(name):
-    print "My name is " + str(name)
-
 iptables = None
 
 def run_iptables(params):
@@ -20,6 +17,11 @@ def run_iptables(params):
 
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = proc.communicate()
+
+    now = datetime.datetime.now()
+    fh = open('/tmp/portguard.txt', 'w')
+    fh.write(str(now) + ': ' + ' '.join(cmd) + ' [' + str(proc.returncode) + ']\n')
+    fh.close()
 
     return (proc.returncode, out, err)
 
@@ -43,7 +45,13 @@ class PortGuard(object):
         fh.write('Host %s (%s) wants to open port %d for %d seconds\n' % (host, user, port, timeout))
         fh.close()
 
-        self.sched.add_job(future, test, [user])
+        args = ['-s', str(host), '-p', 'tcp', '--dport', str(port), '-j', 'ACCEPT']
+        r,o,e = run_iptables(['-I', 'portguard', '1'] + args)
+        if r != 0:
+            return -2
+
+        args = ['-D', 'portguard'] + args
+        self.sched.add_job(future, run_iptables, [args])
 
         return 0
 
