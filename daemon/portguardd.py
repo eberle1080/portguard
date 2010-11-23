@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Author: Chris Eberle <eberle1080@gmail.com>
 
-import os, sys, time, getopt, signal, resource, datetime
+import os, sys, time, getopt, signal, resource, datetime, which, subprocess
 
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
@@ -11,6 +11,17 @@ from scheduler import Scheduler
 
 def test(name):
     print "My name is " + str(name)
+
+iptables = None
+
+def run_iptables(params):
+    global iptables
+    cmd = [iptables] + params
+
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = proc.communicate()
+
+    return (proc.returncode, out, err)
 
 class PortGuard(object):
     def __init__(self, sched):
@@ -46,20 +57,34 @@ class RequestHandler(SimpleXMLRPCRequestHandler):
 
 class PortGuardDaemon(Daemon):
     def run(self):
-        sched = Scheduler()
+        self.sched = Scheduler()
         self.server = SimpleXMLRPCServer(("localhost", 8000),
             requestHandler=RequestHandler)
-        self.server.register_instance(PortGuard(sched))
+        self.server.register_instance(PortGuard(self.sched))
 
-        sched.start()
+        self.sched.start()
         try:
             self.server.serve_forever()
         finally:
-            sched.stop()
+            self.sched.stop()
 
 if __name__ == "__main__":
     daemon = PortGuardDaemon('/tmp/portguardd.pid')
     if len(sys.argv) == 2:
+        try:
+            iptables = which.which('iptables')
+        except IOError, e:
+            print "Unable to locate iptables!"
+            sys.exit(1)
+
+        ret =  run_iptables(['-F', 'portguard'])[0]
+        ret += run_iptables(['-A', 'portguard', '-j', 'RETURN'])[0]
+        ret += run_iptables(['-t', 'nat', '-F', 'portguard'])[0]
+        ret += run_iptables(['-t', 'nat', '-A', 'portguard', '-j', 'RETURN'])[0]
+        if ret != 0:
+            print "Failed to clear the portguard chain, can't continue."
+            sys.exit(1)
+
         if 'start' == sys.argv[1]:
             daemon.start()
         elif 'stop' == sys.argv[1]:
