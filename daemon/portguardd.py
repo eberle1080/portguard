@@ -25,6 +25,20 @@ def run_iptables(params):
 
     return (proc.returncode, out, err)
 
+def open_port(src_host, dst_port):
+    args = ['-s', str(src_host), '-p', 'tcp', '--dport', str(dst_port), '-j', 'ACCEPT']
+    r,o,e = run_iptables(['-I', 'portguard', '1'] + args)
+    if r != 0:
+        return False
+    return True
+
+def close_port(src_host, dst_port):
+    args = ['-s', str(src_host), '-p', 'tcp', '--dport', str(dst_port), '-j', 'ACCEPT']
+    r,o,e = run_iptables(['-D', 'portguard'] + args)
+    if r != 0:
+        return False
+    return True
+
 class PortGuard(object):
     def __init__(self, sched):
         self.sched = sched
@@ -45,13 +59,10 @@ class PortGuard(object):
         fh.write('Host %s (%s) wants to open port %d for %d seconds\n' % (host, user, port, timeout))
         fh.close()
 
-        args = ['-s', str(host), '-p', 'tcp', '--dport', str(port), '-j', 'ACCEPT']
-        r,o,e = run_iptables(['-I', 'portguard', '1'] + args)
-        if r != 0:
-            return -2
+        if open_port(host, port) != True:
+            return -1
 
-        args = ['-D', 'portguard'] + args
-        self.sched.add_job(future, run_iptables, [args])
+        self.sched.add_job(future, close_port, [host, port])
 
         return 0
 
