@@ -22,7 +22,8 @@ session_start();
 
 function LDAPconnect()
 {
-    $ds = ldap_connect(LDAP_SERVER, LDAP_PORT);
+    global $config;
+    $ds = ldap_connect($config['LDAP_SERVER'], $config['LDAP_PORT']);
     if (!$ds) {
         return FALSE;
     }
@@ -36,8 +37,9 @@ function LDAPconnect()
 
 function LDAPauth($rdn, $passwd)
 {
+    global $config;
     $ds = LDAPconnect();
-    $dn = $rdn .",". LDAP_TOP;
+    $dn = $rdn . "," . $config['LDAP_TOP'];
 
     if (!@ldap_bind($ds, $dn, $passwd)) {
         return FALSE;

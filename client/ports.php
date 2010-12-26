@@ -65,16 +65,15 @@ else
 
 function runOpenRequest($request)
 {
-    global $server_host, $server_port;
+    global $config;
 
     $context = stream_context_create(array('http' => array(
         'method' => "POST",
-        'header' => "Content-Type: text/xml\r\nUser-Agent: PHPRPC/1.0\r\nHost: $server_host\r\n",
+        'header' => "Content-Type: text/xml\r\nUser-Agent: PHPRPC/1.0\r\nHost: " . $config["PG_HOST"] . "\r\n",
         'content' => $request
     )));
 
-    $url = "http://$server_host:$server_port/pg";
-
+    $url = "http://" . $config["PG_HOST"] . ":" $config["PG_PORT"] . "/pg";
     $file = file_get_contents($url, false, $context);
 
     $response = xmlrpc_decode($file);
