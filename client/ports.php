@@ -73,7 +73,7 @@ function runOpenRequest($request)
         'content' => $request
     )));
 
-    $url = "http://" . $config["PG_HOST"] . ":" $config["PG_PORT"] . "/pg";
+    $url = "http://" . $config["PG_HOST"] . ":" . $config["PG_PORT"] . "/pg";
     $file = file_get_contents($url, false, $context);
 
     $response = xmlrpc_decode($file);
