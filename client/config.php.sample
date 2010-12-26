@@ -1,3 +1,4 @@
+<?php
 define('LDAP_SERVER', 'ldap.chriseberle.net');
 define('LDAP_PORT', 389);
 define('LDAP_TOP', 'ou=People,dc=chriseberle,dc=net');
