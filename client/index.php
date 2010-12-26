@@ -16,8 +16,6 @@ define('INCLUDES', 1);
 //    exit();
 //}
 
-$inactive = 10 * 60; // 10 minutes
-
 session_start();
 
 function LDAPconnect()
@@ -120,10 +118,11 @@ function processLogin()
 
 function showMainPage()
 {
+    global $config;
     if(isset($_SESSION['timeout']))
     {
         $session_life = time() - $_SESSION['timeout'];
-        if($session_life > $inactive)
+        if($session_life > $config['LOGOUT_TIME'])
         {
             session_destroy();
             header("Location: " . $_SERVER['PHP_SELF']);

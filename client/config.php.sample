@@ -1,6 +1,8 @@
 <?php
 
 $config = array();
+
+$config['LOGOUT_TIME'] = 10 * 60;
 $config['LDAP_SERVER'] = 'ldap.chriseberle.net';
 $config['LDAP_PORT']   = 389;
 $config['LDAP_TOP']    = 'ou=People,dc=chriseberle,dc=net';
