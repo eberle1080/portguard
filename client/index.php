@@ -1,8 +1,12 @@
 <?php
 
-define('LDAP_SERVER', 'ldap.chriseberle.net');
-define('LDAP_PORT', 389);
-define('LDAP_TOP', 'ou=People,dc=chriseberle,dc=net');
+if(!file_exists("config.php"))
+{
+    showError("Please configure portguard");
+    die();
+}
+
+require "config.php";
 define('INCLUDES', 1);
 
 //if($_SERVER["HTTPS"] != "on")
@@ -39,6 +43,23 @@ function LDAPauth($rdn, $passwd)
         return FALSE;
     }
     return $ds;
+}
+
+function showError($message)
+{
+?>
+<html>
+<head>
+  <title>Error</title>
+  <link href="style.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+  <div class="error">
+    <?php echo $message; ?>
+  </div>
+</body>
+</html>
+<?php
 }
 
 function showLogin()

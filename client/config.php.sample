@@ -1,0 +1,15 @@
+define('LDAP_SERVER', 'ldap.chriseberle.net');
+define('LDAP_PORT', 389);
+define('LDAP_TOP', 'ou=People,dc=chriseberle,dc=net');
+
+define('PG_HOST', '10.0.1.1');
+define('PG_PORT', 8000);
+
+define('TIMEOUTS', array(
+    "10 minutes" => 10 * 60,
+    "30 minutes" => 30 * 60,
+    "1 hour" => 60 * 60,
+    "6 hours" => 6 * 60 * 60,
+    "12 hours" => 12 * 60 * 60,
+    "24 hours" => 24 * 60 * 60)
+);

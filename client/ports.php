@@ -5,9 +5,6 @@ if(!defined('INCLUDES'))
     die("Can't call this script directly!");
 }
 
-$server_host = '10.0.1.1';
-$server_port = 8000;
-
 $host = $_SERVER['REMOTE_ADDR'];
 $user = $_SESSION['user'];
 
