@@ -66,8 +66,7 @@ function showPortPage($user, $host)
           <td>443</td>
           <td>12/22/2010 8:45 PM</td>
         </tr>
-      </tbody>
-      <tfoot>
+
         <tr>
           <td><input type="text" readonly="readonly" value="<?php echo $user; ?>" /></td>
           <td><input type="text" readonly="readonly" value="<?php echo $host; ?>" /></td>
@@ -83,14 +82,14 @@ function showPortPage($user, $host)
             </select>
           </td>
         </tr>
-      </tfoot>
-      <tbody>
+      </tbody>
+      <tfoot>
         <tr>
           <td colspan="4" style="text-align: right;">
             <input type="submit" value="Open" />
           </td>
         </tr>
-      </tbody>
+      </tfoot>
     </table>
   </form>
 </body>
