@@ -60,6 +60,7 @@ function showPortPage($user, $host)
         </tr>
       </thead>
       <tbody>
+
         <tr>
           <td>Bob</td>
           <td>1.2.3.4</td>
