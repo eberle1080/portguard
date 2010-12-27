@@ -6,24 +6,26 @@ import os, sys, time, getopt, signal, resource, datetime, which, subprocess
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
 from daemon import Daemon
-from threading import Thread
+from threading import Thread, Lock
 from scheduler import Scheduler
 
 iptables = None
+opened_ports = {}
+forwarded_ports = {}
+open_id = 1
+glock = Lock()
 
 def run_iptables(params):
-    global iptables
+    global iptables, glock
     cmd = [iptables] + params
 
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = proc.communicate()
-
-    now = datetime.datetime.now()
-    # fh = open('/tmp/portguard.txt', 'a+')
-    # fh.write(str(now) + ': ' + ' '.join(cmd) + ' [' + str(proc.returncode) + ']\n')
-    # fh.close()
-
-    return (proc.returncode, out, err)
+    glock.acquire()
+    try:
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = proc.communicate()
+        return (proc.returncode, out, err)
+    finally:
+        glock.release()
 
 def open_port(src_host, dst_port):
     args = ['-s', str(src_host), '-p', 'tcp', '--dport', str(dst_port), '-j', 'ACCEPT']
@@ -32,9 +34,19 @@ def open_port(src_host, dst_port):
         return False
     return True
 
-def close_port(src_host, dst_port):
+def close_port(src_host, dst_port, iopen_id):
+    global glock, opened_ports
+
     args = ['-s', str(src_host), '-p', 'tcp', '--dport', str(dst_port), '-j', 'ACCEPT']
     r,o,e = run_iptables(['-D', 'portguard'] + args)
+
+    glock.acquire()
+    try:
+        if opened_ports.has_key(iopen_id):
+            del opened_ports[iopen_id]
+    finally:
+        glock.release()
+
     if r != 0:
         return False
     return True
@@ -46,9 +58,19 @@ def forward_port(src_host, my_port, dst_host, dst_port):
         return False
     return True
 
-def close_forward(src_host, my_port, dst_host, dst_port):
+def close_forward(src_host, my_port, dst_host, dst_port, fopen_id):
+    global glock, forwarded_ports
+
     args = ['-s', str(src_host), '-p', 'tcp', '--dport', str(my_port), '-j', 'DNAT', '--to', str(dst_host) + ':' + str(dst_port)]
     r,o,e = run_iptables(['-t', 'nat', '-D', 'portguard'] + args)
+
+    glock.acquire()
+    try:
+        if forwarded_ports.has_key(fopen_id):
+            del forwarded_ports[fopen_id]
+    finally:
+        glock.release()
+
     if r != 0:
         return False
     return True
@@ -58,6 +80,8 @@ class PortGuard(object):
         self.sched = sched
 
     def open(self, user, host, port, timeout):
+        global glock, opened_ports, open_id
+
         if not user or len(user) == 0:
             return -1
         if not host or len(host) == 0:
@@ -68,19 +92,24 @@ class PortGuard(object):
             return -1
 
         future = datetime.datetime.now() + datetime.timedelta(0, timeout)
-
-        # fh = open('/tmp/portguard.txt', 'a+')
-        # fh.write('Host %s (%s) wants to open port %d for %d seconds\n' % (host, user, port, timeout))
-        # fh.close()
-
         if open_port(host, port) != True:
             return -1
+        
+        glock.acquire()
+        try:
+            my_openid = open_id
+            open_id += 1
+            opened_ports[my_openid] = (user, host, port, future)
+        finally:
+            glock.release()
 
-        self.sched.add_job(future, close_port, [host, port])
+        self.sched.add_job(future, close_port, [host, port, my_openid])
 
         return 0
 
     def forward(self, user, host, port, dstHost, dstPort, timeout):
+        global glock, forwarded_ports, open_id
+
         if not user or len(user) == 0:
             return -1
         if not host or len(host) == 0:
@@ -96,16 +125,26 @@ class PortGuard(object):
 
         future = datetime.datetime.now() + datetime.timedelta(0, timeout)
 
-        # fh = open('/tmp/portguard.txt', 'a+')
-        # fh.write('Host %s (%s) wants to forward port %d to %s:%d for %d seconds\n' % (host, user, port, dstHost, dstPort, timeout))
-        # fh.close()
-
         if forward_port(host, port, dstHost, dstPort) != True:
             return -1
 
-        self.sched.add_job(future, close_forward, [host, port, dstHost, dstPort])
+        glock.acquire()
+        try:
+            my_openid = open_id
+            open_id += 1
+            forwarded_ports[my_openid] = (user, host, port, dstHost, dstPort, future)
+        finally:
+            glock.release()
+
+        self.sched.add_job(future, close_forward, [host, port, dstHost, dstPort, my_openid])
 
         return 0
+
+    def list_open(self):
+        pass
+
+    def list_forward(self):
+        pass
 
 class RequestHandler(SimpleXMLRPCRequestHandler):
     rpc_paths = ('/pg',)
@@ -113,7 +152,7 @@ class RequestHandler(SimpleXMLRPCRequestHandler):
 class PortGuardDaemon(Daemon):
     def run(self):
         self.sched = Scheduler()
-        self.server = SimpleXMLRPCServer(("0.0.0.0", 8000),
+        self.server = SimpleXMLRPCServer(("0.0.0.0", 8812),
             requestHandler=RequestHandler)
         self.server.register_instance(PortGuard(self.sched))
 
@@ -136,6 +175,7 @@ if __name__ == "__main__":
         ret += run_iptables(['-A', 'portguard', '-j', 'RETURN'])[0]
         ret += run_iptables(['-t', 'nat', '-F', 'portguard'])[0]
         ret += run_iptables(['-t', 'nat', '-A', 'portguard', '-j', 'RETURN'])[0]
+
         if ret != 0:
             print "Failed to clear the portguard chain, can't continue."
             sys.exit(1)

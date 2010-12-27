@@ -6,15 +6,27 @@ from datetime import datetime, timedelta
 from time import mktime
 
 class Scheduler(object):
+    """
+    A simple scheduler. Executes a job once at a predefined time.
+    """
+
     stopped = False
     thread = None
 
     def __init__(self):
+        """
+        Construct a new scheduler
+        """
+
         self.jobs =[]
         self.jobs_lock = Lock()
         self.wakeup = Event()
 
     def start(self):
+        """
+        Start the scheduler up
+        """
+
         if self.thread and self.thread.isAlive():
             return
 
@@ -24,6 +36,10 @@ class Scheduler(object):
         self.thread.start()
 
     def stop(self):
+        """
+        Stop the scheduler
+        """
+
         if self.stopped or not self.thread.isAlive():
             return
 
@@ -33,6 +49,10 @@ class Scheduler(object):
         self.jobs = []
 
     def add_job(self, date, func, args = None):
+        """
+        Add a new job to the scheduler
+        """
+
         if self.stopped:
             return False
         if not hasattr(func, '__call__'):
@@ -51,6 +71,10 @@ class Scheduler(object):
         return True
 
     def _get_next_time(self, now):
+        """
+        Retrieve the time of the next-to-be-executed task
+        """
+
         next_wakeup = None
         finished_jobs = []
 
@@ -71,11 +95,19 @@ class Scheduler(object):
         return next_wakeup
 
     def _time_difference(self, date1, date2):
+        """
+        Get the difference between two datetimes
+        """
+
         later = mktime(date1.timetuple())
         earlier = mktime(date2.timetuple())
         return int(later - earlier)
 
     def _get_current_jobs(self):
+        """
+        Get a list of jobs whose times have lapsed
+        """
+
         current_jobs = []
         now = datetime.now()
         start = now - timedelta(seconds = 1)
@@ -94,6 +126,10 @@ class Scheduler(object):
         return current_jobs
 
     def run(self):
+        """
+        The main scheduler loops
+        """
+
         self.wakeup.clear()
         while not self.stopped:
             for job in self._get_current_jobs():
