@@ -76,7 +76,10 @@ function showPortPage($user, $host)
 <?php
     foreach($config["TIMEOUTS"] as $key => $value)
     {
-        echo "              <option>$key</option>\n";
+        if($key == $config['DEFAULT_TIMEOUT'])
+            echo "              <option>$key</option>\n";
+        else
+            echo "              <option selected>$key</option>\n";
     }
 ?>
             </select>
