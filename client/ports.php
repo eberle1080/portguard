@@ -83,12 +83,14 @@ function showPortPage($user, $host)
             </select>
           </td>
         </tr>
+      </tfoot>
+      <tbody>
         <tr>
           <td colspan="4" style="text-align: right;">
             <input type="submit" value="Open" />
           </td>
         </tr>
-      </tfoot>
+      </tbody>
     </table>
   </form>
 </body>
