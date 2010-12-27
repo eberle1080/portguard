@@ -44,7 +44,7 @@ function showPortPage($user, $host)
 </head>
 <body>
   <div class="topbar">
-     <div class="topleft">You are: <?php echo "$user@$host"; ?></div>
+    <div class="topleft">You are: <?php echo "$user@$host"; ?></div>
     <div class="topright"><a href="?logout">Log out</a></div>
   </div>
 
@@ -81,6 +81,11 @@ function showPortPage($user, $host)
     }
 ?>
             </select>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="4" style="text-align: right;">
+            <input type="submit" value="Open" />
           </td>
         </tr>
       </tfoot>
