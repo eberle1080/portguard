@@ -83,13 +83,13 @@ class PortGuard(object):
         global glock, opened_ports, open_id
 
         if not user or len(user) == 0:
-            return -1
+            raise Exception('Invalid user')
         if not host or len(host) == 0:
-            return -1
+            raise Exception('Invalid host')
         if not port or port <= 0 or port >= 65535:
-            return -1
+            raise Exception('Invalid port')
         if not timeout or timeout <= 0:
-            return -1
+            raise Exception('Invalid timeout')
 
         future = datetime.datetime.now() + datetime.timedelta(0, timeout)
         if open_port(host, port) != True:
@@ -141,7 +141,20 @@ class PortGuard(object):
         return 0
 
     def list_open(self):
-        pass
+        global glock, opened_ports
+
+        olist = []
+
+        glock.acquire()
+        try:
+            for (user, host, port, future) in opened_ports:
+                olist.add(future, user, host, port)
+        finally:
+            glock.release()
+
+        olist.sort()
+        rlist = [(user, host, port, future) for (future, user, host, port) in olist]
+        return rlist
 
     def list_forward(self):
         pass
