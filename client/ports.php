@@ -72,7 +72,7 @@ function showPortPage($user, $host)
           <td><input type="text" readonly="readonly" value="<?php echo $host; ?>" /></td>
           <td><input type="text" name="iport" /></td>
           <td>
-            <select name="itimeout">
+            <select name="itimeout" style="width: 100%;">
 <?php
     foreach($config["TIMEOUTS"] as $key => $value)
     {
