@@ -2,20 +2,34 @@
 
 $config = array();
 
+// How long is the login good for?
 $config['LOGOUT_TIME'] = 10 * 60;
+
+// Your ldap server
 $config['LDAP_SERVER'] = 'ldap.chriseberle.net';
+
+// Your ldap server's port
 $config['LDAP_PORT']   = 389;
+
+// The top of the ldap search path, used for authentication
 $config['LDAP_TOP']    = 'ou=People,dc=chriseberle,dc=net';
+
+// The portguard server's ip. This will be your router's ip.
 $config['PG_HOST']     = '10.0.0.1';
+
+// The portguard server's port
 $config['PG_PORT']     = 8812;
 
+// Valid timeouts
 $config['TIMEOUTS']    = array(
     '10 minutes' => 10 * 60,
     '30 minutes' => 30 * 60,
     '1 hour'     => 60 * 60,
     '6 hours'    => 6 * 60 * 60,
     '12 hours'   => 12 * 60 * 60,
-    '24 hours'   => 24 * 60 * 60
+    '1 day'      => 24 * 60 * 60
+    '2 days'     => 48 * 60 * 60
 );
 
+// The selected default timeout. Must match one of the keys above.
 $config['DEFAULT_TIMEOUT'] = '1 hour';
