@@ -82,6 +82,9 @@ class PortGuard(object):
     def now(self):
         return datetime.datetime.now()
 
+    def ping(self):
+        return 42
+
     def open(self, user, host, port, timeout):
         global glock, opened_ports, open_id
 

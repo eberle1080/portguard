@@ -8,6 +8,14 @@ if(!defined('INCLUDES'))
 $host = $_SERVER['REMOTE_ADDR'];
 $user = $_SESSION['user'];
 
+if(!ping())
+{
+    header($user, $host);
+    echo "Unable to contact portguard server :(";
+    footer();
+    exit;
+}
+
 if(isset($_POST['iport']) && array_key_exists($_POST['itimeout'], $config['TIMEOUTS']))
 {
     $timeout = $config['TIMEOUTS'][$_POST['itimeout']];
@@ -26,7 +34,7 @@ elseif(isset($_POST['fport']) || isset($_POST['fdsthost']) || isset($_POST['fdst
 
 showPortPage($user, $host);
 
-function showPortPage($user, $host)
+function header($user, $host)
 {
     global $config;
 
@@ -45,6 +53,23 @@ function showPortPage($user, $host)
       <?php echo "$user@$host"; ?> [<a href="?logout">Log out</a>]
     </div>
   </div>
+<?php
+}
+
+function footer()
+{
+?>
+</body>
+</html>
+<?php
+}
+
+function showPortPage($user, $host)
+{
+    global $config;
+    header($user, $host);
+
+?>
 
   <h2>Router Ports</h2>
   <form method="post">
@@ -91,43 +116,9 @@ function showPortPage($user, $host)
       </tbody>
     </table>
   </form>
-</body>
-</html>
+
 <?php
-
-/*
-    echo <<<EOL
-
-<h1>You are: $user@$host</h1>
-<h2>Open port directly to router ($timeout minute timeout)</h2>
-<form method="post"><table><tr>
-<td>Router port:</td>
-<td><input type="text" name="iport" /></td>
-</tr>
-<tr>
-<td colspan="2"><input type="submit" value="Open" /></td>
-</tr>
-</table></form>
-
-<h2>Forward a port through the router ($timeout minute timeout)</h2>
-<form method="post"><table><tr>
-<td>Router port:</td>
-<td><input type="text" name="fport" /></td>
-</tr><tr>
-<td>Desination IP:</td>
-<td><input type="text" name="fdsthost" /></td>
-</tr><tr>
-<td>Desination port:</td>
-<td><input type="text" name="fdsthost" /></td>
-</tr><tr>
-<td colspan="2" stlye="text-align: right;">
-<input type="submit" value="Forward" />
-</td></tr>
-</table></form>
-</body></html>
-EOL;
-*/
-
+    footer();
 }
 
 function runOpenRequest($request)
@@ -149,6 +140,31 @@ function runOpenRequest($request)
     //} else {
     //    echo "It worked! Maybe... give it a shot :\\";
     //}
+}
+
+function ping()
+{
+    global $config;
+
+    $request = xmlrpc_encode_request('ping', array());
+    $context = stream_context_create(array('http' => array(
+        'method' => "POST",
+        'header' => "Content-Type: text/xml\r\nUser-Agent: PHPRPC/1.0\r\nHost: " . $config["PG_HOST"] . "\r\n",
+        'content' => $request
+    )));
+
+    $url = "http://" . $config["PG_HOST"] . ":" . $config["PG_PORT"] . "/pg";
+    $file = @file_get_contents($url, false, $context);
+    if($file == false)
+        return false;
+
+    $response = xmlrpc_decode($file);
+    if(xmlrpc_is_fault($response))
+        return false;
+    if($response != 42)
+        return false;
+
+    return true;
 }
 
 function getServerTime()
