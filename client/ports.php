@@ -23,12 +23,15 @@ if(isset($_POST['iport']) && array_key_exists($_POST['itimeout'], $config['TIMEO
     $request = xmlrpc_encode_request('open', array($user, $host, $port, $timeout));
     runOpenRequest($request);
 }
-elseif(isset($_POST['fport']) || isset($_POST['fdsthost']) || isset($_POST['fdstport']))
+elseif(isset($_POST['fport']) && isset($_POST['fdsthost']) && isset($_POST['fdstport']) &&
+       array_key_exists($_POST['ftimeout'], $config['TIMEOUTS']))
 {
+    $timeout = $config['TIMEOUTS'][$_POST['ftimeout']];
     $fport = (int)$_POST['fport'];
     $dsthost = trim($_POST['fdsthost']);
     $dstport = (int)$_POST['fdstport'];
-    $request = xmlrpc_encode_request('forward', array($user, $host, $fport, $dsthost, $dstport, $timeout * 60));
+
+    $request = xmlrpc_encode_request('forward', array($user, $host, $fport, $dsthost, $dstport, $timeout));
     runOpenRequest($request);
 }
 
@@ -36,8 +39,6 @@ showPortPage($user, $host);
 
 function print_header($user, $host)
 {
-    global $config;
-
     ?>
 <html>
 <head>
@@ -64,11 +65,9 @@ function print_footer()
 <?php
 }
 
-function showPortPage($user, $host)
+function routerTable($user, $host)
 {
     global $config;
-    print_header($user, $host);
-
 ?>
 
   <h2>Router Ports</h2>
@@ -116,8 +115,67 @@ function showPortPage($user, $host)
       </tbody>
     </table>
   </form>
-
 <?php
+}
+
+function forwardTable($user, $host)
+{
+    global $config;
+?>
+
+  <h2>Forward Ports</h2>
+  <form method="post">
+    <table class="mainTable">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Remote IP</th>
+          <th>Router Port</th>
+          <th>Dest. Host</th>
+          <th>Dest. Port</th>
+          <th>Timeout</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr>
+          <td><input type="text" readonly="readonly" value="<?php echo $user; ?>" /></td>
+          <td><input type="text" readonly="readonly" value="<?php echo $host; ?>" /></td>
+          <td><input type="text" name="fport" /></td>
+          <td><input type="text" name="fdsthost" /></td>
+          <td><input type="text" name="fdstport" /></td>
+          <td>
+            <select name="ftimeout" style="width: 100%;">
+<?php
+    foreach($config["TIMEOUTS"] as $key => $value)
+    {
+        if($key == $config['DEFAULT_TIMEOUT'])
+            echo "              <option selected>$key</option>\n";
+        else
+            echo "              <option>$key</option>\n";
+    }
+?>
+            </select>
+          </td>
+        </tr>
+
+        <tr>
+          <td colspan="6" style="text-align: right;">
+            <input type="submit" value="Open" />
+          </td>
+        </tr>
+
+      </tbody>
+    </table>
+  </form>
+<?php
+}
+
+function showPortPage($user, $host)
+{
+    print_header($user, $host);
+    routerTable($user, $host);
+    forwardTable($user, $host);
     print_footer();
 }
 
@@ -134,12 +192,10 @@ function runOpenRequest($request)
     $url = "http://" . $config["PG_HOST"] . ":" . $config["PG_PORT"] . "/pg";
     $file = file_get_contents($url, false, $context);
 
-    //$response = xmlrpc_decode($file);
-    //if (is_array($response) and xmlrpc_is_fault($response)){
-    //    echo "Failed";
-    //} else {
-    //    echo "It worked! Maybe... give it a shot :\\";
-    //}
+    $response = xmlrpc_decode($file);
+    if (is_array($response) and xmlrpc_is_fault($response)){
+        echo "Failed :(";
+    }
 }
 
 function ping()
