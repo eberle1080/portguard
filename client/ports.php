@@ -11,7 +11,7 @@ $user = $_SESSION['user'];
 if(!ping())
 {
     print_header($user, $host);
-    echo "Unable to contact portguard server :(";
+    echo '<div style="margin-top: 10px;">Unable to contact portguard server :(</div>' . "\n";
     print_footer();
     exit;
 }
