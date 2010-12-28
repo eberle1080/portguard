@@ -8,12 +8,7 @@ if(!defined('INCLUDES'))
 $host = $_SERVER['REMOTE_ADDR'];
 $user = $_SESSION['user'];
 
-if(!isset($_POST['iport']) && !isset($_POST['fport']) &&
-   !isset($_POST['fdsthost']) && !isset($_POST['fdstport']))
-{
-    showPortPage($user, $host);
-}
-elseif(isset($_POST['iport']) && array_key_exists($_POST['iport'], $config['TIMEOUTS']))
+if(isset($_POST['iport']) && array_key_exists($_POST['iport'], $config['TIMEOUTS']))
 {
     $timeout = $config['TIMEOUTS'][$_POST['iport']];
     $port = (int)$_POST['iport'];
@@ -28,10 +23,8 @@ elseif(isset($_POST['fport']) || isset($_POST['fdsthost']) || isset($_POST['fdst
     $request = xmlrpc_encode_request('forward', array($user, $host, $fport, $dsthost, $dstport, $timeout * 60));
     runOpenRequest($request);
 }
-else
-{
-    die("Unknown error");
-}
+
+showPortPage($user, $host);
 
 function showPortPage($user, $host)
 {
