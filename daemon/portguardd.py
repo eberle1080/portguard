@@ -99,7 +99,7 @@ class PortGuard(object):
 
         future = datetime.datetime.now() + datetime.timedelta(0, timeout)
         if open_port(host, port) != True:
-            return -1
+            raise Exception('Failed to open the port')
         
         glock.acquire()
         try:
@@ -117,22 +117,21 @@ class PortGuard(object):
         global glock, forwarded_ports, open_id
 
         if not user or len(user) == 0:
-            return -1
+            raise Exception('Invalid user')
         if not host or len(host) == 0:
-            return -1
+            raise Exception('Invalid host')
         if not port or port <= 0 or port >= 65535:
-            return -1
+            raise Exception('Invalid port')
         if not dstHost or len(dstHost) == 0:
-            return -1
+            raise Exception('Invalid destination host')
         if not dstPort or dstPort <= 0 or dstPort >= 65535:
-            return -1
+            raise Exception('Invalid destination port')
         if not timeout or timeout <= 0:
-            return -1
+            raise Exception('Invalid timeout')
 
         future = datetime.datetime.now() + datetime.timedelta(0, timeout)
-
         if forward_port(host, port, dstHost, dstPort) != True:
-            return -1
+            raise Exception('Failed to forward the port')
 
         glock.acquire()
         try:
@@ -163,7 +162,20 @@ class PortGuard(object):
         return rlist
 
     def list_forward(self):
-        pass
+        global glock, forwarded_ports
+
+        olist = []
+
+        glock.acquire()
+        try:
+            for k, (user, host, port, dstHost, dstPort, future) in forwarded_ports.items():
+                olist.append((future, user, host, port, dstHost, dstPort))
+        finally:
+            glock.release()
+
+        olist.sort()
+        rlist = [(user, host, port, dstHost, dstPort, future) for (future, user, host, port, dstHost, dstPort) in olist]
+        return rlist
 
 class RequestHandler(SimpleXMLRPCRequestHandler):
     rpc_paths = ('/pg',)
