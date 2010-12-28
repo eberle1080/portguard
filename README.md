@@ -1,12 +1,13 @@
 # portguard
 
-This little project is intended to be a client-server system. The server is written in python
-and runs on a router (specifically a NAT router). It accepts connections from the client. It
-opens ports for a set amount of time (specified in seconds), and then closes the hole. It is
-designed so that you can open a port for yourself wherever you are. It uses XMLRPC for
-communication. The client is written in PHP. Technically, no authentication is necessary,
-but I figured it would be a good idea to force people to log in. Once logged in, users can
-open ports for themselves using the web interface.
+Portguard is my own little project intended to allow LDAP users to punch holes in the firewall
+for themselves. After a certain period of time (in incrememts defined by the sysadmin), the holes
+are closed automatically. This is accomplished with a client-server system. A python daemon runs
+on the router, opening / forwarding ports, and then closing them at a specified time. A PHP web
+client allows users to communicate with this daemon.
+
+This project runs under linux, and requires python, php (with xmlrpc), iptables, and apache. It is
+released under the GPL v2 license.
 
 ## Goals
 
@@ -14,6 +15,9 @@ The usage scenario for this is simple. I'm at home, I want to access a service a
 sadly lives behind a NAT). I log in to the website with my LDAP credentials, open a few
 ports for myself, and now I'm cooking with fire (or whatever the kids are cooking with these
 days).
+
+You're probably asking yourself, "and just what is wrong with ssh tunnels?" Good question, friend.
+One word: iPhone. Also sometimes ssh tunnels just aren't practical.
 
 ## Setup
 
@@ -71,8 +75,10 @@ are) directly to the router. The other will allow you to create a forward to a h
 You can technically use this site from BEHIND the NAT, but it won't do anything particularly exciting. 
 The most important option is timeout which determines how long the exception will be available.
 
-This will allow any LDAP user to set up holes in the firewall for themselves. There are no exceptions,
-that's up to you to code. There's no way I can anticipate your policies.
+This will allow any LDAP user to set up holes in the firewall for themselves. The only exception is that
+the "remote IP" field is hard coded to the IP that they're logging in from. This prevents them from
+opening ports for their friends. There are no other policy-related exceptions, that's up to you to code.
+There's no way I can anticipate your particular needs.
 
 ## Security
 
@@ -88,3 +94,17 @@ One thing to keep in mind: there's no reason to be concerned about a user screwi
 Rules are on a per-ip basis, which means that if Joe forwards port 123 somewhere, port 123 is still
 available for the rest of the users (as long as they're behind a different remote IP). Again, any changes
 in the program's behavior you wish to see can be accomplished by (say it with me) changing the code.
+
+The portguard program is a stateful program. What does this mean? Well if you go around restarting the daemon
+all of your users' firewall exceptions WILL be reset. Why? It was easy, and c'mon are you really rebooting
+your router that often? And if so, you've got problems that my program won't solve.
+
+## Future ideas
+
+These are JUST ideas. Odds are they'll never make it in to this program, but they sure are fun to think about.
+
+*  Per-user persistent rules (just log in and all of your forwards are set up)
+*  Keep-alive client (would make the timeout stuff obsolete, requires previous feature)
+*  Logging (this one may make it in)
+*  More advanced firewall exceptions (port ranges, SNAT / DNAT, simple forwarding without NAT)
+*  Banning (block any IPs that fail to log in after n attempts)
