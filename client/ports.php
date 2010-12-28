@@ -8,9 +8,9 @@ if(!defined('INCLUDES'))
 $host = $_SERVER['REMOTE_ADDR'];
 $user = $_SESSION['user'];
 
-if(isset($_POST['iport']) && array_key_exists($_POST['iport'], $config['TIMEOUTS']))
+if(isset($_POST['iport']) && array_key_exists($_POST['itimeout'], $config['TIMEOUTS']))
 {
-    $timeout = $config['TIMEOUTS'][$_POST['iport']];
+    $timeout = $config['TIMEOUTS'][$_POST['itimeout']];
     $port = (int)$_POST['iport'];
     $request = xmlrpc_encode_request('open', array($user, $host, $port, $timeout));
     runOpenRequest($request);
@@ -139,12 +139,12 @@ function runOpenRequest($request)
     $url = "http://" . $config["PG_HOST"] . ":" . $config["PG_PORT"] . "/pg";
     $file = file_get_contents($url, false, $context);
 
-    $response = xmlrpc_decode($file);
-    if (is_array($response) and xmlrpc_is_fault($response)){
-        echo "Failed";
-    } else {
-        echo "It worked! Maybe... give it a shot :\\";
-    }
+    //$response = xmlrpc_decode($file);
+    //if (is_array($response) and xmlrpc_is_fault($response)){
+    //    echo "Failed";
+    //} else {
+    //    echo "It worked! Maybe... give it a shot :\\";
+    //}
 }
 
 function listOpenPorts()
@@ -183,7 +183,5 @@ echo <<<EOL
           <td>$timeout</td>
         </tr>
 EOL;
-
-        print $timeout . "\n";
     }
 }
