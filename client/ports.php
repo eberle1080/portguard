@@ -179,7 +179,9 @@ function getServerTime()
     )));
 
     $url = "http://" . $config["PG_HOST"] . ":" . $config["PG_PORT"] . "/pg";
-    $file = file_get_contents($url, false, $context);
+    $file = @file_get_contents($url, false, $context);
+    if($file == false)
+        return "Cannot retrieve server time";
 
     $response = xmlrpc_decode($file);
     return date("m/d/Y g:i a", $response->timestamp);
