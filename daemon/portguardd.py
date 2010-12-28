@@ -147,8 +147,8 @@ class PortGuard(object):
 
         glock.acquire()
         try:
-            for (user, host, port, future) in opened_ports:
-                olist.add(future, user, host, port)
+            for k, (user, host, port, future) in opened_ports.items():
+                olist.append((future, user, host, port))
         finally:
             glock.release()
 

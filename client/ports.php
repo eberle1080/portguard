@@ -13,10 +13,11 @@ if(!isset($_POST['iport']) && !isset($_POST['fport']) &&
 {
     showPortPage($user, $host);
 }
-elseif(isset($_POST['iport']))
+elseif(isset($_POST['iport']) && array_key_exists($_POST['iport'], $config['TIMEOUTS']))
 {
+    $timeout = $config['TIMEOUTS'][$_POST['iport']];
     $port = (int)$_POST['iport'];
-    $request = xmlrpc_encode_request('open', array($user, $host, $port, $timeout * 60));
+    $request = xmlrpc_encode_request('open', array($user, $host, $port, $timeout));
     runOpenRequest($request);
 }
 elseif(isset($_POST['fport']) || isset($_POST['fdsthost']) || isset($_POST['fdstport']))
@@ -61,12 +62,9 @@ function showPortPage($user, $host)
       </thead>
       <tbody>
 
-        <tr>
-          <td>Bob</td>
-          <td>1.2.3.4</td>
-          <td>443</td>
-          <td>12/22/2010 8:45 PM</td>
-        </tr>
+<?php
+    listOpenPorts();
+?>
 
         <tr>
           <td><input type="text" readonly="readonly" value="<?php echo $user; ?>" /></td>
@@ -153,5 +151,46 @@ function runOpenRequest($request)
         echo "Failed";
     } else {
         echo "It worked! Maybe... give it a shot :\\";
+    }
+}
+
+function listOpenPorts()
+{
+    global $config;
+
+    $request = xmlrpc_encode_request('list_open', array());
+    $context = stream_context_create(array('http' => array(
+        'method' => "POST",
+        'header' => "Content-Type: text/xml\r\nUser-Agent: PHPRPC/1.0\r\nHost: " . $config["PG_HOST"] . "\r\n",
+        'content' => $request
+    )));
+
+    $url = "http://" . $config["PG_HOST"] . ":" . $config["PG_PORT"] . "/pg";
+    $file = file_get_contents($url, false, $context);
+
+    $response = xmlrpc_decode($file);
+    if (is_array($response) and xmlrpc_is_fault($response))
+    {
+        echo "Failed";
+        return;
+    }
+
+    foreach($response as $item)
+    {
+        $user = $item[0];
+        $remote = $item[1];
+        $port = $item[2];
+        $timeout = date("m/d/Y g:i a", $item[3]->timestamp);
+
+echo <<<EOL
+        <tr>
+          <td>$user</td>
+          <td>$remote</td>
+          <td>$port</td>
+          <td>$timeout</td>
+        </tr>
+EOL;
+
+        print $timeout . "\n";
     }
 }
