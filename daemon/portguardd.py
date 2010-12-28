@@ -79,6 +79,9 @@ class PortGuard(object):
     def __init__(self, sched):
         self.sched = sched
 
+    def now(self):
+        return datetime.datetime.now()
+
     def open(self, user, host, port, timeout):
         global glock, opened_ports, open_id
 
