@@ -38,8 +38,12 @@ function showPortPage($user, $host)
 </head>
 <body>
   <div class="topbar">
-    <div class="topleft">You are: <?php echo "$user@$host"; ?></div>
-    <div class="topright"><a href="?logout">Log out</a></div>
+    <div class="topleft">
+      <?php echo getServerTime(); ?>
+    </div>
+    <div class="topright">
+      <?php echo "$user@$host"; ?> [<a href="?logout">Log out</a>]
+    </div>
   </div>
 
   <h2>Router Ports</h2>
@@ -145,6 +149,24 @@ function runOpenRequest($request)
     //} else {
     //    echo "It worked! Maybe... give it a shot :\\";
     //}
+}
+
+function getServerTime()
+{
+    global $config;
+
+    $request = xmlrpc_encode_request('now', array());
+    $context = stream_context_create(array('http' => array(
+        'method' => "POST",
+        'header' => "Content-Type: text/xml\r\nUser-Agent: PHPRPC/1.0\r\nHost: " . $config["PG_HOST"] . "\r\n",
+        'content' => $request
+    )));
+
+    $url = "http://" . $config["PG_HOST"] . ":" . $config["PG_PORT"] . "/pg";
+    $file = file_get_contents($url, false, $context);
+
+    $response = xmlrpc_decode($file);
+    return date("m/d/Y g:i a", $response->timestamp);
 }
 
 function listOpenPorts()

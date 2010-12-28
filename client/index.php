@@ -71,27 +71,31 @@ function showLogin()
   <link href="style.css" rel="stylesheet" type="text/css">
 </head>
 <body>
-  <form method="post">
-  <table id="login">
+  <div class="center">
+    <h2>Log in</h2>
 
-    <tr>
-      <td>Name:</td>
-      <td><input type="text" name="luname" /></td>
-    </tr>
+    <form method="post">
+    <table id="login">
 
-    <tr>
-      <td>Pass:</td>
-      <td><input type="password" name="lupass" /></td>
-    </tr>
+      <tr>
+        <td>Name:</td>
+        <td><input type="text" name="luname" /></td>
+      </tr>
 
-    <tr>
-      <td colspan="2" style="text-align: right;">
-        <input type="submit" value="Log in" />
-      </td>
-    </tr>
+      <tr>
+        <td>Pass:</td>
+        <td><input type="password" name="lupass" /></td>
+      </tr>
 
-  </table>
-  </form>
+      <tr>
+        <td colspan="2" style="text-align: right;">
+          <input type="submit" value="Log in" />
+        </td>
+      </tr>
+
+    </table>
+    </form>
+  </div>
 </body>
 </html>
 <?php
