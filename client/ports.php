@@ -137,7 +137,9 @@ function forwardTable($user, $host)
         </tr>
       </thead>
       <tbody>
-
+?>
+    listForwardPorts();
+<?php
         <tr>
           <td><input type="text" readonly="readonly" value="<?php echo $user; ?>" /></td>
           <td><input type="text" readonly="readonly" value="<?php echo $host; ?>" /></td>
@@ -276,6 +278,49 @@ echo <<<EOL
           <td>$user</td>
           <td>$remote</td>
           <td>$port</td>
+          <td>$timeout</td>
+        </tr>
+EOL;
+    }
+}
+
+function listForwardPorts()
+{
+    global $config;
+
+    $request = xmlrpc_encode_request('list_forward', array());
+    $context = stream_context_create(array('http' => array(
+        'method' => "POST",
+        'header' => "Content-Type: text/xml\r\nUser-Agent: PHPRPC/1.0\r\nHost: " . $config["PG_HOST"] . "\r\n",
+        'content' => $request
+    )));
+
+    $url = "http://" . $config["PG_HOST"] . ":" . $config["PG_PORT"] . "/pg";
+    $file = file_get_contents($url, false, $context);
+
+    $response = xmlrpc_decode($file);
+    if (is_array($response) and xmlrpc_is_fault($response))
+    {
+        echo "Failed";
+        return;
+    }
+
+    foreach($response as $item)
+    {
+        $user = $item[0];
+        $remote = $item[1];
+        $port = $item[2];
+        $dstHost = $item[3];
+        $dstPort = $item[4];
+        $timeout = date("m/d/Y g:i a", $item[5]->timestamp);
+
+echo <<<EOL
+        <tr>
+          <td>$user</td>
+          <td>$remote</td>
+          <td>$port</td>
+          <td>$dstHost</td>
+          <td>$dstPort</td>
           <td>$timeout</td>
         </tr>
 EOL;
