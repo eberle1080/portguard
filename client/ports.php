@@ -10,9 +10,9 @@ $user = $_SESSION['user'];
 
 if(!ping())
 {
-    header($user, $host);
+    print_header($user, $host);
     echo "Unable to contact portguard server :(";
-    footer();
+    print_footer();
     exit;
 }
 
@@ -34,7 +34,7 @@ elseif(isset($_POST['fport']) || isset($_POST['fdsthost']) || isset($_POST['fdst
 
 showPortPage($user, $host);
 
-function header($user, $host)
+function print_header($user, $host)
 {
     global $config;
 
@@ -56,7 +56,7 @@ function header($user, $host)
 <?php
 }
 
-function footer()
+function print_footer()
 {
 ?>
 </body>
@@ -67,7 +67,7 @@ function footer()
 function showPortPage($user, $host)
 {
     global $config;
-    header($user, $host);
+    print_header($user, $host);
 
 ?>
 
@@ -118,7 +118,7 @@ function showPortPage($user, $host)
   </form>
 
 <?php
-    footer();
+    print_footer();
 }
 
 function runOpenRequest($request)
