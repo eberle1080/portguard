@@ -137,9 +137,9 @@ function forwardTable($user, $host)
         </tr>
       </thead>
       <tbody>
-?>
-    listForwardPorts();
 <?php
+    listForwardPorts();
+?>
         <tr>
           <td><input type="text" readonly="readonly" value="<?php echo $user; ?>" /></td>
           <td><input type="text" readonly="readonly" value="<?php echo $host; ?>" /></td>
