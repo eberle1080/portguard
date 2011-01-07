@@ -108,3 +108,4 @@ These are JUST ideas. Odds are they'll never make it in to this program, but the
 *  Logging (this one may make it in)
 *  More advanced firewall exceptions (port ranges, SNAT / DNAT, simple forwarding without NAT)
 *  Banning (block any IPs that fail to log in after n attempts)
+*  Manual expiration (i.e. deletion) of firewall exceptions (likely to make it in)
